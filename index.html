@@ -1,0 +1,273 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Will BD</title>
+<meta name="description" content="Offline bilingual will and estate-planning guide for Bangladesh: build a plain-language will outline, list assets, check the one-third rule, and learn the basics.">
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+<header class="topbar">
+  <div class="wrap topbar-in">
+    <div>
+      <h1 id="appTitle">Will BD</h1>
+      <p class="tagline" data-i18n="tagline"></p>
+    </div>
+    <div class="top-actions">
+      <button id="exportBtn" class="btn btn-ghost" type="button" data-i18n="exportBtn">Export JSON</button>
+      <button id="importBtn" class="btn btn-ghost" type="button" data-i18n="importBtn">Import JSON</button>
+      <input id="importFile" type="file" accept="application/json,.json" hidden>
+      <button id="langBtn" class="btn btn-ghost" type="button">Bangla</button>
+    </div>
+  </div>
+</header>
+
+<main class="wrap">
+  <p id="loadError" class="form-error" role="alert" hidden></p>
+
+  <section aria-labelledby="dashH">
+    <h2 id="dashH" data-i18n="dashboard">Dashboard</h2>
+    <div class="cards">
+      <div class="card"><span class="card-num" id="statAssets">-</span><span class="card-label" data-i18n="totalAssets">Total assets</span></div>
+      <div class="card"><span class="card-num" id="statBeneficiaries">0</span><span class="card-label" data-i18n="beneficiaries">Beneficiaries</span></div>
+      <div class="card"><span class="card-num" id="statChecklist">0%</span><span class="card-label" data-i18n="checklistProgress">Checklist</span></div>
+      <div class="card"><span class="card-num" id="statOutline">-</span><span class="card-label" data-i18n="outlineStatus">Will outline</span></div>
+    </div>
+  </section>
+
+  <section aria-labelledby="outlineH">
+    <h2 id="outlineH" data-i18n="outlineSection">Your will outline</h2>
+
+    <h3 data-i18n="testatorTitle">About you (testator)</h3>
+    <form id="testatorForm" novalidate>
+      <div class="form-grid">
+        <label><span data-i18n="fullName">Full name</span>
+          <input id="testatorNameInput" type="text" maxlength="60" data-i18n-ph="fullNamePh" placeholder="e.g. Rahim Uddin">
+        </label>
+        <label><span data-i18n="address">Address</span>
+          <input id="testatorAddressInput" type="text" maxlength="200" data-i18n-ph="addressPh" placeholder="e.g. House 12, Road 5, Dhanmondi, Dhaka">
+        </label>
+        <label><span data-i18n="nid">NID number (optional)</span>
+          <input id="testatorNidInput" type="text" maxlength="17" inputmode="numeric" data-i18n-ph="nidHint" placeholder="10, 13 or 17 digits">
+        </label>
+      </div>
+      <p class="hint" data-i18n="nidHint">If given, it must be 10, 13 or 17 digits.</p>
+      <p id="testatorError" class="form-error" role="alert" hidden></p>
+      <p id="testatorSaved" class="ok-msg" role="status" hidden></p>
+      <div class="row">
+        <button class="btn btn-primary" type="submit" id="saveTestatorBtn" data-i18n="saveTestator">Save</button>
+      </div>
+    </form>
+
+    <h3 data-i18n="benTitle">Beneficiaries</h3>
+    <form id="benForm" novalidate>
+      <div class="form-grid">
+        <label><span data-i18n="fullName">Full name</span>
+          <input id="benNameInput" type="text" maxlength="60" data-i18n-ph="benNamePh" placeholder="Name (e.g. Ayesha)">
+        </label>
+        <label><span data-i18n="relation">Relation</span>
+          <select id="benRelationSelect"></select>
+        </label>
+        <label><span data-i18n="share">Share %</span>
+          <input id="benShareInput" type="number" min="1" max="100" inputmode="numeric" data-i18n-ph="sharePh" placeholder="e.g. 50">
+        </label>
+      </div>
+      <p id="benError" class="form-error" role="alert" hidden></p>
+      <div class="row">
+        <button class="btn btn-primary" type="submit" id="addBenBtn" data-i18n="addBeneficiary">Add beneficiary</button>
+        <button class="btn" type="button" id="benCancelBtn" data-i18n="cancel" hidden>Cancel</button>
+      </div>
+    </form>
+    <ul id="benList" class="ben-list"></ul>
+    <p id="benEmpty" class="empty" data-i18n="noBeneficiaries">No beneficiaries yet - add at least one.</p>
+
+    <h3 data-i18n="executorTitle">Executor</h3>
+    <p class="hint" data-i18n="executorHint">The person who will carry out your will after your death.</p>
+    <form id="executorForm" novalidate>
+      <div class="form-grid">
+        <label><span data-i18n="execName">Executor name</span>
+          <input id="execNameInput" type="text" maxlength="60" data-i18n-ph="execNamePh" placeholder="e.g. Kamal Hossain">
+        </label>
+        <label><span data-i18n="execRelation">Executor's relation to you</span>
+          <select id="execRelationSelect"></select>
+        </label>
+        <label><span data-i18n="execPhone">Phone (optional)</span>
+          <input id="execPhoneInput" type="tel" maxlength="14" data-i18n-ph="execPhonePh" placeholder="e.g. 01712345678">
+        </label>
+      </div>
+      <p id="execError" class="form-error" role="alert" hidden></p>
+      <p id="execSaved" class="ok-msg" role="status" hidden></p>
+      <div class="row">
+        <button class="btn btn-primary" type="submit" id="saveExecBtn" data-i18n="saveExecutor">Save executor</button>
+      </div>
+    </form>
+
+    <h3 data-i18n="witnessesTitle">Witnesses</h3>
+    <p class="hint" data-i18n="witnessHint">Two adult witnesses present at signing is the standard practice.</p>
+    <form id="witnessForm" novalidate>
+      <div class="form-grid form-grid-2">
+        <label><span data-i18n="witness1">First witness name</span>
+          <input id="witness1Input" type="text" maxlength="60" data-i18n-ph="witness1Ph" placeholder="e.g. Mina Akter">
+        </label>
+        <label><span data-i18n="witness2">Second witness name</span>
+          <input id="witness2Input" type="text" maxlength="60" data-i18n-ph="witness2Ph" placeholder="e.g. Arif Chowdhury">
+        </label>
+      </div>
+      <p id="witnessError" class="form-error" role="alert" hidden></p>
+      <p id="witnessSaved" class="ok-msg" role="status" hidden></p>
+      <div class="row">
+        <button class="btn btn-primary" type="submit" id="saveWitnessBtn" data-i18n="saveWitnesses">Save witnesses</button>
+      </div>
+    </form>
+
+    <h3 data-i18n="guardianTitle">Guardian for minor children (optional)</h3>
+    <form id="guardianForm" novalidate>
+      <div class="form-grid form-grid-1">
+        <label><span data-i18n="guardianTitle">Guardian for minor children (optional)</span>
+          <input id="guardianNameInput" type="text" maxlength="60" data-i18n-ph="guardianNamePh" placeholder="Guardian name (e.g. Shirin Akter)">
+        </label>
+      </div>
+      <p id="guardianError" class="form-error" role="alert" hidden></p>
+      <p id="guardianSaved" class="ok-msg" role="status" hidden></p>
+      <div class="row">
+        <button class="btn btn-primary" type="submit" id="saveGuardianBtn" data-i18n="saveGuardian">Save guardian</button>
+      </div>
+    </form>
+
+    <h3 data-i18n="wishesTitle">Special wishes</h3>
+    <form id="wishesForm" novalidate>
+      <label><span class="sr-only" data-i18n="wishesTitle">Special wishes</span>
+        <textarea id="wishesInput" rows="3" maxlength="500" data-i18n-ph="wishesPh" placeholder="e.g. My books should go to the local library."></textarea>
+      </label>
+      <p id="wishesCount" class="hint">0 / 500 characters</p>
+      <p id="wishesError" class="form-error" role="alert" hidden></p>
+      <p id="wishesSaved" class="ok-msg" role="status" hidden></p>
+      <div class="row">
+        <button class="btn btn-primary" type="submit" id="saveWishesBtn" data-i18n="saveWishes">Save wishes</button>
+      </div>
+    </form>
+
+    <div class="outline-box">
+      <h3 data-i18n="outlineBoxTitle">Your will outline (draft)</h3>
+      <p id="outlineMissing" class="form-error" role="alert" hidden></p>
+      <div id="outlineLines"></div>
+      <p class="hint outline-note" data-i18n="outlineDisclaimer">This is a plain-language draft to take to a lawyer. It is NOT a legal document and NOT legal advice.</p>
+      <div class="row">
+        <button class="btn btn-primary" type="button" id="printBtn" data-i18n="printBtn">Print outline</button>
+      </div>
+    </div>
+  </section>
+
+  <section aria-labelledby="calcH">
+    <h2 id="calcH" data-i18n="calcSection">One-third rule calculator</h2>
+    <p class="hint" data-i18n="calcHint">Under Muslim personal law in Bangladesh, bequests to non-heirs are limited to one-third of the estate. This is general information, not legal advice.</p>
+    <form id="calcForm" novalidate>
+      <div class="form-grid form-grid-1">
+        <label><span data-i18n="estateValue">Estate value (taka)</span>
+          <input id="estateInput" type="number" min="0" max="999999999" inputmode="numeric" data-i18n-ph="estateValuePh" placeholder="e.g. 900000">
+        </label>
+      </div>
+      <p id="calcError" class="form-error" role="alert" hidden></p>
+      <p id="calcResult" class="calc-result" role="status" hidden></p>
+      <p id="calcRule" class="hint" hidden></p>
+      <div class="row">
+        <button class="btn btn-primary" type="button" id="calcBtn" data-i18n="calcBtn">Calculate</button>
+      </div>
+      <p class="hint" data-i18n="calcInfo">This calculator is general information only.</p>
+    </form>
+  </section>
+
+  <section aria-labelledby="assetsH">
+    <h2 id="assetsH" data-i18n="assetsSection">Asset inventory</h2>
+    <form id="assetForm" novalidate>
+      <div class="form-grid">
+        <label><span data-i18n="assetType">Type</span>
+          <select id="assetTypeSelect"></select>
+        </label>
+        <label><span data-i18n="assetDesc">Description</span>
+          <input id="assetDescInput" type="text" maxlength="120" data-i18n-ph="assetDescPh" placeholder="e.g. Land in Gazipur, 5 katha">
+        </label>
+        <label><span data-i18n="assetValue">Value (taka)</span>
+          <input id="assetValueInput" type="number" min="0" max="999999999" inputmode="numeric" data-i18n-ph="assetValuePh" placeholder="e.g. 500000">
+        </label>
+      </div>
+      <p id="assetError" class="form-error" role="alert" hidden></p>
+      <div class="row">
+        <button class="btn btn-primary" type="submit" id="addAssetBtn" data-i18n="addAsset">Add asset</button>
+        <button class="btn" type="button" id="assetCancelBtn" data-i18n="cancel" hidden>Cancel</button>
+      </div>
+    </form>
+    <ul id="assetList" class="asset-list"></ul>
+    <p id="assetsEmpty" class="empty" data-i18n="noAssets">No assets yet - add your first asset.</p>
+    <p class="asset-total"><span data-i18n="totalLabel">Total</span>: <strong id="assetTotal">-</strong></p>
+  </section>
+
+  <section aria-labelledby="checkH">
+    <h2 id="checkH" data-i18n="checklistsSection">Checklists</h2>
+    <p id="overallPct" class="check-pct" role="status">Overall: 0%</p>
+    <h3><span data-i18n="beforeTitle">Before you write</span> - <span id="beforePct" class="check-pct-inline">Overall: 0%</span></h3>
+    <ul id="beforeList" class="check-list"></ul>
+    <h3><span data-i18n="signingTitle">Signing day</span> - <span id="signingPct" class="check-pct-inline">Overall: 0%</span></h3>
+    <ul id="signingList" class="check-list"></ul>
+  </section>
+
+  <section aria-labelledby="quizH">
+    <h2 id="quizH" data-i18n="quizSection">Quiz</h2>
+    <p class="hint" data-i18n="quizIntro">Check what you learned - 10 questions, one at a time.</p>
+    <p id="quizBestLine" class="quiz-best" role="status">You have not taken the quiz yet.</p>
+    <div class="row">
+      <button class="btn btn-primary" type="button" id="quizStartBtn" data-i18n="quizStart">Start quiz</button>
+      <button class="btn" type="button" id="quizRestartBtn" data-i18n="quizRestart" hidden>Restart quiz</button>
+    </div>
+    <div id="quizBox" class="quiz-box" hidden>
+      <p id="quizQof" class="quiz-qof">Question 1 of 10</p>
+      <p id="quizQuestion" class="quiz-question"></p>
+      <div id="quizOptions" class="quiz-options"></div>
+      <p id="quizFeedback" class="quiz-feedback" role="status" hidden></p>
+      <div class="row">
+        <button class="btn btn-primary" type="button" id="quizNextBtn" data-i18n="quizNext" hidden>Next question</button>
+      </div>
+    </div>
+    <p id="quizResult" class="quiz-result" role="status" hidden></p>
+  </section>
+
+  <section aria-labelledby="goodH">
+    <h2 id="goodH" data-i18n="goodSection">Good to know</h2>
+    <div class="good-grid">
+      <div class="good-card"><h3 data-i18n="gk1t">Nomination is not a will</h3><p data-i18n="gk1b"></p></div>
+      <div class="good-card"><h3 data-i18n="gk2t">The one-third rule</h3><p data-i18n="gk2b"></p></div>
+      <div class="good-card"><h3 data-i18n="gk3t">Registration is optional</h3><p data-i18n="gk3b"></p></div>
+      <div class="good-card"><h3 data-i18n="gk4t">Review after big life events</h3><p data-i18n="gk4b"></p></div>
+    </div>
+  </section>
+
+  <section aria-labelledby="dataH">
+    <h2 id="dataH" data-i18n="dataSection">Data</h2>
+    <div class="row">
+      <button class="btn" type="button" id="demoBtn" data-i18n="demoBtn">Load demo data</button>
+      <button class="btn btn-danger" type="button" id="eraseBtn" data-i18n="eraseBtn">Erase everything</button>
+    </div>
+    <div id="eraseBox" hidden>
+      <p data-i18n="eraseLabel">To erase all data, type DELETE and confirm.</p>
+      <div class="row">
+        <input id="eraseInput" type="text" data-i18n-ph="erasePlaceholder" placeholder="Type DELETE" aria-label="Type DELETE to confirm erase">
+        <button class="btn btn-danger" type="button" id="eraseConfirmBtn" data-i18n="eraseConfirm">Confirm erase</button>
+      </div>
+    </div>
+    <p id="eraseError" class="form-error" role="alert" hidden></p>
+    <p id="dataMsg" class="data-msg" role="status"></p>
+  </section>
+</main>
+
+<footer class="wrap">
+  <p data-i18n="disclaimer1"></p>
+  <p data-i18n="disclaimer2"></p>
+  <p data-i18n="disclaimer3"></p>
+</footer>
+
+<script src="js/logic.js"></script>
+<script src="js/i18n.js"></script>
+<script src="js/app.js"></script>
+</body>
+</html>
